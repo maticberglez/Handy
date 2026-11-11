@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { getIdentifier } from "@tauri-apps/api/app";
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { listen } from "@tauri-apps/api/event";
@@ -19,6 +20,7 @@ interface UpdateCheckerProps {
 
 const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
   const { t } = useTranslation();
+  const [canInstallUpstream, setCanInstallUpstream] = useState(false);
   // Update checking state
   const [isChecking, setIsChecking] = useState(false);
   const [updateAvailable, setUpdateAvailable] = useState(false);
@@ -46,6 +48,14 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
   const isManualCheckRef = useRef(false);
   const downloadedBytesRef = useRef(0);
   const contentLengthRef = useRef(0);
+
+  useEffect(() => {
+    getIdentifier()
+      .then((identifier) =>
+        setCanInstallUpstream(identifier === "com.pais.handy"),
+      )
+      .catch((error) => console.error("Failed to identify the app:", error));
+  }, []);
 
   useEffect(() => {
     // Wait for settings to load before doing anything
@@ -120,7 +130,7 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
   };
 
   const installUpdate = async () => {
-    if (!updateChecksEnabled) return;
+    if (!updateChecksEnabled || !canInstallUpstream) return;
 
     const portable = await commands.isPortable();
     if (portable) {
@@ -192,7 +202,11 @@ const UpdateChecker: React.FC<UpdateCheckerProps> = ({ className = "" }) => {
 
   const getUpdateStatusAction = () => {
     if (!updateChecksEnabled) return undefined;
-    if (updateAvailable && !isInstalling) return installUpdate;
+    if (updateAvailable && !isInstalling) {
+      return canInstallUpstream
+        ? installUpdate
+        : () => openUrl(PORTABLE_RELEASES_URL);
+    }
     if (!isChecking && !isInstalling && !updateAvailable)
       return handleManualUpdateCheck;
     return undefined;
