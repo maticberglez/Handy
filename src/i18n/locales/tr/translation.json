@@ -513,7 +513,8 @@
           "options": {
             "none": "Yok",
             "minimal": "Sade",
-            "live": "Canlı"
+            "live": "Canlı",
+            "monochrome": "Tek renkli"
           }
         },
         "position": {

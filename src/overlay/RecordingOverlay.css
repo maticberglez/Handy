@@ -457,3 +457,86 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Compact waveform and processing indicator, based on the macOS references. */
+.ov-monochrome {
+  --s-surface: #050505;
+  --s-accent: #f1f1f1;
+  --s-muted: #aaa;
+  --s-border: #383838;
+  --mono-scale: 1.25;
+  --ov-rest-w: calc(58px * var(--mono-scale));
+  --ov-work-w: calc(78px * var(--mono-scale));
+  --ov-base-h: calc(22px * var(--mono-scale));
+}
+
+.ov-monochrome.monochrome_small {
+  --mono-scale: 1;
+}
+
+.ov-monochrome.monochrome_large {
+  --mono-scale: 1.5625;
+}
+
+.ov-monochrome .scard {
+  transition: width 140ms ease-out;
+}
+
+.mono-row {
+  height: var(--ov-base-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(7px * var(--mono-scale));
+}
+
+.ov-monochrome .swave {
+  gap: calc(1px * var(--mono-scale));
+  padding: 0;
+}
+
+.ov-monochrome .swave i {
+  width: calc(1.6px * var(--mono-scale));
+  min-height: calc(2px * var(--mono-scale));
+  max-height: calc(11px * var(--mono-scale));
+  transition: height 90ms ease-out;
+}
+
+.ov-monochrome .swave.arming i,
+.mono-working .swave i {
+  height: calc(2px * var(--mono-scale)) !important;
+  background: #aaa;
+  opacity: 0.8;
+  animation: none;
+}
+
+.mono-working .swave i {
+  opacity: 0.42;
+  transition: none;
+}
+
+.mono-spinner {
+  width: calc(11px * var(--mono-scale));
+  height: calc(11px * var(--mono-scale));
+  flex: none;
+  fill: none;
+  stroke: #a7adba;
+  stroke-width: 1.55;
+  stroke-linecap: round;
+  animation: sspin 900ms steps(8) infinite;
+}
+
+.ov-monochrome .nlabel {
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-monochrome .scard,
+  .ov-monochrome .swave i {
+    transition: none;
+  }
+
+  .mono-spinner {
+    animation: none;
+  }
+}

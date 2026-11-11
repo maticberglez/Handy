@@ -513,7 +513,8 @@
           "options": {
             "none": "कुनै होइन",
             "minimal": "मिनिमल",
-            "live": "लाइभ"
+            "live": "लाइभ",
+            "monochrome": "एकरङ्गी"
           }
         },
         "position": {

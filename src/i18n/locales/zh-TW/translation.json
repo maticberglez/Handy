@@ -513,7 +513,8 @@
           "options": {
             "none": "無",
             "minimal": "精簡",
-            "live": "即時"
+            "live": "即時",
+            "monochrome": "黑白"
           }
         },
         "position": {

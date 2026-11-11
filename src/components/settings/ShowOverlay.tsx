@@ -28,6 +28,10 @@ export const ShowOverlay: React.FC<ShowOverlayProps> = React.memo(
         value: "live",
         label: t("settings.advanced.overlay.style.options.live"),
       },
+      {
+        value: "monochrome",
+        label: t("settings.advanced.overlay.style.options.monochrome"),
+      },
     ];
 
     const positionOptions = [
@@ -43,6 +47,13 @@ export const ShowOverlay: React.FC<ShowOverlayProps> = React.memo(
 
     const selectedStyle = (getSetting("overlay_style") ||
       "live") as OverlayStyle;
+    const monochrome = selectedStyle.startsWith("monochrome");
+    const sizeOptions = [
+      { value: "monochrome_small", label: "80%" },
+      { value: "monochrome", label: "100%" },
+      { value: "monochrome_large", label: "125%" },
+    ];
+
     // Only "top" and "bottom" are selectable; anything else (empty, or a legacy
     // "none" from before the position was retired) falls back to "bottom".
     const selectedPosition: OverlayPosition =
@@ -58,13 +69,26 @@ export const ShowOverlay: React.FC<ShowOverlayProps> = React.memo(
         >
           <Dropdown
             options={styleOptions}
-            selectedValue={selectedStyle}
+            selectedValue={monochrome ? "monochrome" : selectedStyle}
             onSelect={(value) =>
               updateSetting("overlay_style", value as OverlayStyle)
             }
             disabled={isUpdating("overlay_style")}
           />
         </SettingContainer>
+
+        {monochrome && (
+          <SettingContainer title={t("modelTable.size")} grouped={grouped}>
+            <Dropdown
+              options={sizeOptions}
+              selectedValue={selectedStyle}
+              onSelect={(value) =>
+                updateSetting("overlay_style", value as OverlayStyle)
+              }
+              disabled={isUpdating("overlay_style")}
+            />
+          </SettingContainer>
+        )}
 
         {selectedStyle !== "none" && (
           <SettingContainer

@@ -513,7 +513,8 @@
           "options": {
             "none": "Aucune",
             "minimal": "Minimal",
-            "live": "Live"
+            "live": "Live",
+            "monochrome": "Monochrome"
           }
         },
         "position": {

@@ -513,7 +513,8 @@
           "options": {
             "none": "Không có",
             "minimal": "Tối giản",
-            "live": "Trực tiếp"
+            "live": "Trực tiếp",
+            "monochrome": "Đơn sắc"
           }
         },
         "position": {

@@ -513,7 +513,8 @@
           "options": {
             "none": "Няма",
             "minimal": "Минимално",
-            "live": "На живо"
+            "live": "На живо",
+            "monochrome": "Монохромен"
           }
         },
         "position": {

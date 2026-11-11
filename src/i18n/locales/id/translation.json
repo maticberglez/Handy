@@ -513,7 +513,8 @@
           "options": {
             "none": "Tidak Ada",
             "minimal": "Minimal",
-            "live": "Waktu Nyata"
+            "live": "Waktu Nyata",
+            "monochrome": "Monokrom"
           }
         },
         "position": {

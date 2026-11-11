@@ -143,6 +143,12 @@ pub enum OverlayStyle {
     None,
     Minimal,
     Live,
+    #[serde(alias = "still")]
+    Monochrome,
+    #[serde(rename = "monochrome_small")]
+    MonochromeSmall,
+    #[serde(rename = "monochrome_large")]
+    MonochromeLarge,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Type, Default)]

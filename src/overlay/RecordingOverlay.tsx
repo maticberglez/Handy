@@ -5,6 +5,7 @@ import "./RecordingOverlay.css";
 import { commands, events } from "@/bindings";
 import type {
   Notice,
+  OverlayStyle,
   StreamPhase,
   StreamPhaseEvent,
   StreamTextEvent,
@@ -30,6 +31,7 @@ const isNoticeState = (state: OverlayState) =>
 // Number of reactive bars in the waveform (the simple, smoothed style shared by
 // every overlay form). Mic levels arrive as 16 FFT buckets; we take the first N.
 const WAVE_BARS = 9;
+const MONOCHROME_WAVE_BARS = 10;
 
 // Only call out a model load in the Live preview once it has run this long.
 // Warm loads finish in well under this (~0.2s on Apple Silicon, ~1.5s on a
@@ -62,7 +64,9 @@ const RecordingOverlay: React.FC = () => {
   // Latched per Live session: once the loading notice has opened the panel, keep
   // it open after the load so it doesn't collapse and reopen when text arrives.
   const [loadNoticeShown, setLoadNoticeShown] = useState(false);
-  const [levels, setLevels] = useState<number[]>(Array(WAVE_BARS).fill(0));
+  const [levels, setLevels] = useState<number[]>(
+    Array(MONOCHROME_WAVE_BARS).fill(0),
+  );
   const [streamText, setStreamText] = useState<StreamTextEvent>({
     committed: "",
     tentative: "",
@@ -76,6 +80,7 @@ const RecordingOverlay: React.FC = () => {
   // Overlay placement (top vs bottom of the screen). The Live panel grows downward
   // from a top overlay (oldest line under the pill) and upward from a bottom one.
   const [position, setPosition] = useState<"top" | "bottom">("bottom");
+  const [style, setStyle] = useState<OverlayStyle>("live");
   // True once live text overflows the cap. A top overlay fades its top edge only
   // while overflowing, so the resting first line stays crisp flush under the pill.
   const [overflowing, setOverflowing] = useState(false);
@@ -109,7 +114,7 @@ const RecordingOverlay: React.FC = () => {
         if (overlayState === "recording" || overlayState === "streaming") {
           setCaptureReady(false);
           smoothedLevelsRef.current = Array(16).fill(0);
-          setLevels(Array(WAVE_BARS).fill(0));
+          setLevels(Array(MONOCHROME_WAVE_BARS).fill(0));
           setStreamText({ committed: "", tentative: "" });
         }
 
@@ -119,6 +124,7 @@ const RecordingOverlay: React.FC = () => {
         try {
           const settings = await commands.getAppSettings();
           if (settings.status === "ok") {
+            setStyle(settings.data.overlay_style ?? "live");
             setPosition(
               settings.data.overlay_position === "top" ? "top" : "bottom",
             );
@@ -156,14 +162,13 @@ const RecordingOverlay: React.FC = () => {
 
       const unlistenLevel = await listen<number[]>("mic-level", (event) => {
         const newLevels = event.payload as number[];
-        // Exponential smoothing across the 16 buckets, then take the first N
-        // bars for the shared waveform.
+        // Exponential smoothing across the 16 buckets.
         const smoothed = smoothedLevelsRef.current.map((prev, i) => {
           const target = newLevels[i] || 0;
           return prev * 0.7 + target * 0.3;
         });
         smoothedLevelsRef.current = smoothed;
-        setLevels(smoothed.slice(0, WAVE_BARS));
+        setLevels(smoothed);
       });
 
       const unlistenStream = await events.streamTextEvent.listen((event) => {
@@ -280,16 +285,19 @@ const RecordingOverlay: React.FC = () => {
     : t("overlay.transcribing");
 
   // ---- Shared building blocks (one visual language for every overlay form) ----
+  const monochrome = style.startsWith("monochrome");
   const waveform = (
     <div className={`swave ${captureReady ? "ready" : "arming"}`}>
-      {levels.map((v, i) => (
-        <i
-          key={i}
-          style={{
-            height: `${Math.max(3, Math.min(18, 3 + Math.pow(v, 0.7) * 15))}px`,
-          }}
-        />
-      ))}
+      {levels
+        .slice(0, monochrome ? MONOCHROME_WAVE_BARS : WAVE_BARS)
+        .map((v, i) => (
+          <i
+            key={i}
+            style={{
+              height: `${Math.max(3, Math.min(18, 3 + Math.pow(v, 0.7) * 15))}px`,
+            }}
+          />
+        ))}
     </div>
   );
 
@@ -439,7 +447,7 @@ const RecordingOverlay: React.FC = () => {
   return (
     <div
       dir={direction}
-      className={`ov-stage ${position} ov-fade ${isVisible ? "show" : ""}`}
+      className={`ov-stage ${position} ov-fade ${monochrome ? `ov-monochrome ${style}` : ""} ${isVisible ? "show" : ""}`}
     >
       {noticeProbe}
       <div
@@ -447,11 +455,41 @@ const RecordingOverlay: React.FC = () => {
         style={shownNotice ? { width: noticeWidth } : undefined}
         onClick={dismissNotice}
       >
-        {shownNotice
-          ? noticeRow
-          : working
-            ? workingRow(workLabel, true)
-            : listeningRow(false, true)}
+        {shownNotice ? (
+          noticeRow
+        ) : monochrome ? (
+          working ? (
+            <div
+              className="mono-row mono-working"
+              role="status"
+              aria-label={workLabel}
+            >
+              {waveform}
+              <svg
+                className="mono-spinner"
+                viewBox="0 0 12 12"
+                aria-hidden="true"
+              >
+                {[1, 0.82, 0.64, 0.48, 0.35, 0.25, 0.2, 0.15].map(
+                  (opacity, i) => (
+                    <path
+                      key={i}
+                      d="M6 1.1v2.1"
+                      transform={`rotate(${-i * 45} 6 6)`}
+                      opacity={opacity}
+                    />
+                  ),
+                )}
+              </svg>
+            </div>
+          ) : (
+            <div className="mono-row">{waveform}</div>
+          )
+        ) : working ? (
+          workingRow(workLabel, true)
+        ) : (
+          listeningRow(false, true)
+        )}
       </div>
     </div>
   );

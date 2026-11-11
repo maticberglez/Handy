@@ -513,7 +513,8 @@
           "options": {
             "none": "Žádné",
             "minimal": "Minimální",
-            "live": "Živě"
+            "live": "Živě",
+            "monochrome": "Černobílý"
           }
         },
         "position": {
