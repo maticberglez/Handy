@@ -22,11 +22,12 @@ echo 'PASS: shell syntax, dirty-checkout protection, and real prerequisites.'
 
 # Exercise real Git merges with a local upstream and fake only network/build/UI.
 FIXTURE=$(mktemp -d)
-trap 'rm -rf "$FIXTURE"' EXIT
+trap 'if [ "$?" != 0 ]; then cat "$FIXTURE"/*.log 2>/dev/null; fi; rm -rf "$FIXTURE"' EXIT
 mkdir -p "$FIXTURE/custom/scripts" "$FIXTURE/custom/src-tauri/resources/models"
 cp "$ROOT/scripts/update-custom-handy.sh" "$FIXTURE/custom/scripts/"
 printf model > "$FIXTURE/custom/src-tauri/resources/models/silero-vad-v6.2-F32.gguf"
 printf base > "$FIXTURE/custom/example"
+printf ".custom-updates.local/\n" > "$FIXTURE/custom/.gitignore"
 git init -q "$FIXTURE/custom"
 git -C "$FIXTURE/custom" add .
 git -C "$FIXTURE/custom" -c user.name=Test -c user.email=test@example.invalid commit -qm base
