@@ -999,10 +999,10 @@
   "customUpdate": {
     "button": "Update Custom Handy",
     "title": "Custom Handy Update",
-    "description": "Download and merge the latest release, then build a preview. Your everyday app stays unchanged. Conflicts stop the update; copy the log to get help.",
+    "description": "Download and merge the latest release, run checks, then install directly into Handy and restart it. If anything fails, copy the log to get help. No preview apps are created.",
     "ready": "Ready to check for updates.",
-    "running": "Updating… You can close this panel and return later.",
-    "success": "Update succeeded — preview ready in Finder.",
+    "running": "Updating… Handy will restart after a successful installation.",
+    "success": "Handy is up to date.",
     "failed": "Update stopped — copy the log for help.",
     "copy": "Copy log / error",
     "copied": "Copied",

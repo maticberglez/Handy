@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "react-i18next";
 import UpdateChecker from "./UpdateChecker";
@@ -18,13 +18,24 @@ export default function CustomUpdate() {
   const [error, setError] = useState("");
   const [starting, setStarting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const shownFailure = useRef<string | null>(null);
 
   useEffect(() => {
     let active = true;
     const refresh = async () => {
       try {
         const next = await invoke<UpdateStatus>("custom_update_status");
-        if (active) setStatus(next);
+        if (active) {
+          setStatus(next);
+          if (
+            next.success === false &&
+            !next.running &&
+            shownFailure.current !== next.log
+          ) {
+            shownFailure.current = next.log;
+            setVisible(true);
+          }
+        }
       } catch (err) {
         if (active) setError(String(err));
       }
@@ -38,6 +49,7 @@ export default function CustomUpdate() {
   }, []);
 
   const start = async () => {
+    shownFailure.current = null;
     setStarting(true);
     setError("");
     setCopied(false);

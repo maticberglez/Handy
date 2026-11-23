@@ -3,17 +3,20 @@ set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.cargo/bin:$PATH"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-for tool in git bun cargo python3 curl; do
-  command -v "$tool" >/dev/null || { echo "Missing required tool: $tool"; exit 1; }
-done
-# Uncommitted files cannot be preserved by a Git merge.
-changes=$(git status --porcelain --untracked-files=all -- . ':!Update Custom Handy.command' ':!scripts/update-custom-handy.sh' ':!scripts/test-update-custom-handy.sh' ':!CUSTOM_UPDATES.md')
-if [ -n "$changes" ]; then
-  echo "Commit your custom changes first. No update was started:"
-  printf '%s\n' "$changes"
-  exit 1
-fi
+preflight() {
+  for tool in git bun cargo python3 curl; do
+    command -v "$tool" >/dev/null || { echo "Missing required tool: $tool"; exit 1; }
+  done
+  # Every customization, including this updater, must be committed before merging.
+  changes=$(git status --porcelain --untracked-files=all)
+  if [ -n "$changes" ]; then
+    echo "Commit your custom changes first. No update was started:"
+    printf '%s\n' "$changes"
+    exit 1
+  fi
+}
 if [ "${1:-}" = "--check" ]; then
+  preflight
   echo "Ready: required tools are installed and custom source changes are committed."
   exit 0
 fi
@@ -23,10 +26,19 @@ if ! mkdir "$BASE/running.lock" 2>/dev/null; then
   echo "An update is already running. If it was interrupted, remove $BASE/running.lock and retry."
   exit 1
 fi
-trap 'rmdir "$BASE/running.lock"' EXIT
+finish() {
+  result=$?
+  printf '%s\n' "$result" > "$BASE/result.tmp"
+  mv "$BASE/result.tmp" "$BASE/result"
+  rmdir "$BASE/running.lock"
+}
+trap finish EXIT
+rm -f "$BASE/result"
 WORK="$(mktemp -d "$BASE/update-XXXXXX")"
-exec > >(tee "$WORK/update.log") 2>&1
-trap 'echo "Update stopped. Your everyday app is unchanged. Files and log: $WORK"' ERR
+exec > >(tee "$WORK/update.log" "$BASE/ui-update.log") 2>&1
+trap 'echo "Update stopped. See the error above. Files and log: $WORK"' ERR
+preflight
+SOURCE_REVISION=$(git rev-parse HEAD)
 printf 'Checking the latest official Handy release...\n'
 RELEASE=$(curl --connect-timeout 20 --max-time 120 --fail --silent --show-error --location --retry 3 \
   https://api.github.com/repos/cjpais/Handy/releases/latest | \
@@ -45,11 +57,9 @@ if [ ! -d "$CARGO_TARGET_DIR" ]; then
     fi
   done
 fi
-APP="$CARGO_TARGET_DIR/release/bundle/macos/Handy Update Preview.app"
-FINGERPRINT="$(git rev-parse HEAD) $RELEASE $(git hash-object scripts/update-custom-handy.sh)"
-if [ -d "$APP" ] && [ -f "$BASE/built-version" ] && [ "$(cat "$BASE/built-version")" = "$FINGERPRINT" ]; then
-  echo "Already up to date. Your tested preview is ready: $APP"
-  open -R "$APP"
+APP="$CARGO_TARGET_DIR/release/bundle/macos/Handy.app"
+if python3 "$ROOT/scripts/install-custom-handy.py" --is-current "$ROOT" "$RELEASE"; then
+  echo "Already up to date. Your main Handy includes $RELEASE. Nothing was rebuilt or installed."
   exit 0
 fi
 echo "Preparing your custom source with official release $RELEASE in $WORK/source"
@@ -64,11 +74,11 @@ if ! git -c user.name='Handy Local Updater' -c user.email='handy-updater@example
   echo "Automatic merge failed. No app was installed. Resolve this in $WORK/source with help."
   exit 1
 fi
-# A separate identifier keeps preview settings and single-instance behavior isolated.
-cat > src-tauri/update-preview.local.json <<'CONFIG'
+# Always build with the everyday identifier to retain settings and models.
+cat > src-tauri/update-main.local.json <<'CONFIG'
 {
-  "productName": "Handy Update Preview",
-  "identifier": "com.maticberglez.handy.preview",
+  "productName": "Handy",
+  "identifier": "com.maticberglez.handy.custom",
   "bundle": { "createUpdaterArtifacts": false }
 }
 CONFIG
@@ -84,11 +94,7 @@ bun install --frozen-lockfile
 bun run lint
 bun run check:translations
 (cd src-tauri && cargo fmt -- --check)
-HANDY_SOURCE_ROOT="$ROOT" CMAKE_POLICY_VERSION_MINIMUM=3.5 bun run tauri build --bundles app --config src-tauri/update-preview.local.json
-[ -d "$APP" ] || { echo 'Build finished but the preview app could not be found.'; exit 1; }
-printf '%s\n' "$FINGERPRINT" > "$BASE/built-version"
-printf '\nUpdated preview ready: %s\n' "$APP"
-printf 'Quit everyday Handy before opening the preview to avoid shortcut conflicts.\n'
-printf 'The preview has separate settings. Test it before adopting this update.\n'
-printf 'Keep this folder: it contains your merged source for the eventual everyday build.\n'
-open -R "$APP"
+HANDY_SOURCE_ROOT="$ROOT" CMAKE_POLICY_VERSION_MINIMUM=3.5 bun run tauri build --bundles app --config src-tauri/update-main.local.json
+[ -d "$APP" ] || { echo 'Build finished but Handy.app could not be found.'; exit 1; }
+printf '\nChecks and build passed. Installing into the main Handy app...\n'
+python3 "$ROOT/scripts/install-custom-handy.py" "$ROOT" "$WORK/source" "$APP" "$RELEASE" "$SOURCE_REVISION"

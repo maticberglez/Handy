@@ -1,18 +1,18 @@
 # Updating your custom Handy
 
-In a build containing the new button, click **Update Custom Handy** in the footer. Its panel shows progress, success or failure, and a **Copy log / error** button. Closing the panel does not stop the update. You can also double-click `Update Custom Handy.command` in this folder. You can drag it to the Dock (on the folder side) or make a Finder alias on your Desktop.
+Click **Update Custom Handy** in the footer, then the update button in its panel. It shows progress and a **Copy log / error** button. You can also double-click `Update Custom Handy.command`.
 
-The launcher downloads the latest published official release, merges it with your committed custom code in `.custom-updates.local`, runs checks, and builds **Handy Update Preview**. Finder selects the finished app. It never installs over everyday Handy or changes your original branch.
+The updater checks the latest official release and your committed custom source against the installed app. If they match, it reports **Already up to date** without building anything. Otherwise it merges in a separate folder, runs lint, translations, Rust formatting and the production build, verifies the signed app, and installs directly into `/Applications/Handy.app`. No preview app is created. The existing `com.maticberglez.handy.custom` identifier keeps your settings and models.
 
-Quit everyday Handy before opening the preview to avoid shortcut conflicts. Preview uses `com.maticberglez.handy.preview`, with separate settings and model selection. It may share settings with your existing development preview.
+After installation Handy restarts automatically. The updater runs separately so quitting the old app does not interrupt installation. Its result and log persist across the restart. Conflicts are listed and the merge is aborted; failed checks stop before replacing the app. Installation errors restore the previous app when it has already been replaced. An immediate launch failure also restores it; passing checks cannot guarantee that every feature behaves correctly.
 
-If a merge or check fails, the Terminal window explains why and shows the working folder. Its `update.log` contains the details. Ask for help with that folder; the launcher does not guess how to fix conflicts. If the launcher is forcibly interrupted, remove `.custom-updates.local/running.lock` after confirming no update is running.
+Previous app builds and settings backups are kept in `.custom-updates.local/rollback`. Logs and merged source are kept in the update attempt's folder. Successful installation fast-forwards your original checkout to the merged history. Commit all changes before updating; edits made while a build runs stop installation.
 
-Commit custom source changes before updating. Ignored files (including local build configuration) are not merged. The launcher intentionally supplies its own preview configuration. Build dependencies are cached in `.custom-updates.local/target`; the first run reuses an existing completed build through a symlink when available. Keep the old folder targeted by that symlink. Unchanged releases and custom commits skip the build. Each attempt retains its merged source and log. Conflicting merges are aborted after listing the affected files.
+Rust dependencies are reused through `.custom-updates.local/target`. This may be a symlink to an older build folder: keep that folder. New updates still need to compile the changed application code.
 
-After testing, ask to adopt the update. Build the merged source with the everyday custom configuration and the existing `com.maticberglez.handy.custom` identifier, then replace the everyday app. Keep the merged Git history for future development. This final installation is intentionally manual.
+If anything needs attention, use **Copy log / error** and send the log for help. If the updater is forcibly terminated, remove `.custom-updates.local/running.lock` only after confirming it is no longer running.
 
-To check prerequisites without downloading or building:
+Prerequisites without downloading or installing:
 
 ```sh
 bash scripts/update-custom-handy.sh --check
