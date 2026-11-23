@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "react-i18next";
 import UpdateChecker from "./UpdateChecker";
+import { Button } from "../ui/Button";
 
 interface UpdateStatus {
   available: boolean;
@@ -62,28 +63,43 @@ export default function CustomUpdate() {
 
   return (
     <>
-      <button className="hover:text-ink" onClick={() => setVisible(true)}>
+      <Button variant="secondary" size="sm" onClick={() => setVisible(true)}>
         {label}
-      </button>
+      </Button>
       {visible && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <section
             role="dialog"
             aria-modal="true"
             aria-labelledby="custom-update-title"
-            className="bg-background border border-line rounded-lg p-6 w-full max-w-2xl mx-4 space-y-4 text-sm text-ink"
+            className="bg-background border border-line rounded-2xl shadow-2xl p-6 w-full max-w-2xl mx-4 space-y-5 text-sm text-ink"
           >
-            <h2 id="custom-update-title" className="font-semibold">
+            <h2
+              id="custom-update-title"
+              className="text-lg font-semibold tracking-tight"
+            >
               {t("customUpdate.title")}
             </h2>
-            <p>{t("customUpdate.description")}</p>
-            <p role="status">{label}</p>
-            <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words text-xs bg-wash p-3 rounded select-text">
+            <p className="text-ink-2 leading-relaxed">
+              {t("customUpdate.description")}
+            </p>
+            <p
+              role="status"
+              className={`rounded-lg border px-3 py-2 font-medium ${
+                error || status?.success === false
+                  ? "border-error/30 bg-error-wash text-error"
+                  : "border-line bg-wash"
+              }`}
+            >
+              {label}
+            </p>
+            <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words text-xs leading-relaxed bg-wash border border-line p-4 rounded-lg select-text">
               {[error, status?.log].filter(Boolean).join("\n\n") ||
                 t("customUpdate.ready")}
             </pre>
-            <div className="flex gap-3 justify-end">
-              <button
+            <div className="flex flex-wrap gap-2 justify-end border-t border-line pt-4">
+              <Button
+                variant="secondary"
                 onClick={async () => {
                   try {
                     await navigator.clipboard.writeText(
@@ -97,16 +113,17 @@ export default function CustomUpdate() {
                 disabled={!error && !status?.log}
               >
                 {copied ? t("customUpdate.copied") : t("customUpdate.copy")}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
                 onClick={() => void start()}
                 disabled={!!busy || !status?.available}
               >
                 {t("customUpdate.button")}
-              </button>
-              <button onClick={() => setVisible(false)}>
+              </Button>
+              <Button variant="secondary" onClick={() => setVisible(false)}>
                 {t("common.close")}
-              </button>
+              </Button>
             </div>
           </section>
         </div>
