@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { getVersion } from "@tauri-apps/api/app";
 
 import ModelSelector from "../model-selector";
-import UpdateChecker from "../update-checker";
+import CustomUpdate from "../update-checker/CustomUpdate";
 import NoticeChip from "./NoticeChip";
 import TranscriptionStatus from "./TranscriptionStatus";
 
@@ -38,7 +38,7 @@ const Footer: React.FC<FooterProps> = ({ onShowHistory }) => {
         <div className="flex items-center gap-3">
           {/* Update Status */}
           <div className="flex items-center gap-1">
-            <UpdateChecker />
+            <CustomUpdate />
             <span>•</span>
             {/* eslint-disable-next-line i18next/no-literal-string */}
             <span>v{version}</span>

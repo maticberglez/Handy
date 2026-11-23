@@ -993,5 +993,17 @@
     "learnMore": "इसे कैसे ठीक करें",
     "recorderBlocked": "अभी शॉर्टकट रिकॉर्ड नहीं किए जा सकते — macOS Secure Input कुंजी इवेंट ब्लॉक कर रहा है. पहले Secure Input चेतावनी हल करें.",
     "dismiss": "खारिज करें"
+  },
+  "customUpdate": {
+    "button": "Update Custom Handy",
+    "title": "Custom Handy Update",
+    "description": "Download and merge the latest release, then build a preview. Your everyday app stays unchanged. Conflicts stop the update; copy the log to get help.",
+    "ready": "Ready to check for updates.",
+    "running": "Updating… You can close this panel and return later.",
+    "success": "Update succeeded — preview ready in Finder.",
+    "failed": "Update stopped — copy the log for help.",
+    "copy": "Copy log / error",
+    "copied": "Copied",
+    "copyFailed": "Copy failed. Select and copy the log manually."
   }
 }

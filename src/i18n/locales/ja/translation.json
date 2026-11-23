@@ -993,5 +993,17 @@
     "learnMore": "解決方法",
     "recorderBlocked": "現在ショートカットを記録できません。macOS の Secure Input がキーイベントをブロックしています。先に Secure Input の警告を解消してください。",
     "dismiss": "閉じる"
+  },
+  "customUpdate": {
+    "button": "Update Custom Handy",
+    "title": "Custom Handy Update",
+    "description": "Download and merge the latest release, then build a preview. Your everyday app stays unchanged. Conflicts stop the update; copy the log to get help.",
+    "ready": "Ready to check for updates.",
+    "running": "Updating… You can close this panel and return later.",
+    "success": "Update succeeded — preview ready in Finder.",
+    "failed": "Update stopped — copy the log for help.",
+    "copy": "Copy log / error",
+    "copied": "Copied",
+    "copyFailed": "Copy failed. Select and copy the log manually."
   }
 }

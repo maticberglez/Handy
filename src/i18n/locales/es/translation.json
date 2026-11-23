@@ -993,5 +993,17 @@
     "learnMore": "Cómo solucionarlo",
     "recorderBlocked": "Ahora mismo no se pueden grabar atajos: Secure Input de macOS está bloqueando los eventos de teclado. Resuelve primero el aviso de Secure Input.",
     "dismiss": "Descartar"
+  },
+  "customUpdate": {
+    "button": "Update Custom Handy",
+    "title": "Custom Handy Update",
+    "description": "Download and merge the latest release, then build a preview. Your everyday app stays unchanged. Conflicts stop the update; copy the log to get help.",
+    "ready": "Ready to check for updates.",
+    "running": "Updating… You can close this panel and return later.",
+    "success": "Update succeeded — preview ready in Finder.",
+    "failed": "Update stopped — copy the log for help.",
+    "copy": "Copy log / error",
+    "copied": "Copied",
+    "copyFailed": "Copy failed. Select and copy the log manually."
   }
 }
